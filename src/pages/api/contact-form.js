@@ -7,10 +7,10 @@ export default async function handler(req, res) {
   const recaptchaKey = process.env.RECAPTCHA_SITE_KEY;
   const mailFrom = process.env.GMAIL_ADDRESS;
   const mailTo = process.env.YAHOO_ADDRESS;
-  const requestSite = req.headers.origin;
+  const requestSite = req.headers.origin.slice(12); // remove first part of the url
   const { data, recaptchaToken } = req.body;
 
-  // handle CORS preflight
+  // handle CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     }
 
     const mailData = {
-      from: mailFrom,
+      from: { name: requestSite, address: mailFrom },
       to: mailTo,
       replyTo: data.email,
       subject: `${requestSite} contact form - ${data.name}`,
@@ -88,12 +88,9 @@ export default async function handler(req, res) {
       html,
     };
 
-    transporter.sendMail(mailData, (err, info) => {
-      if (err) return res.status(400).send(err);
-      return res.status(200).send({ info, message: 'Success' });
-    });
+    const mailRes = await transporter.sendMail(mailData);
+    return res.status(200).send(mailRes);
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 }
