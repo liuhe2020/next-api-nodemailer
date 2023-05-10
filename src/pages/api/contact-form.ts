@@ -1,17 +1,17 @@
 // import type { NextApiRequest, NextApiResponse } from 'next';
 import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
 import nodemailer from 'nodemailer';
-import mailInterface from '../../interfaces/mailInterface';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
-  const recaptchaKey = process.env.RECAPTCHA_SITE_KEY;
-  const mailFrom = process.env.GMAIL_ADDRESS;
-  const mailTo = process.env.YAHOO_ADDRESS;
-  const requestSite = req.headers.origin.slice(12); // remove first part of the url
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const recaptchaKey = process.env.RECAPTCHA_SITE_KEY!;
+  const mailFrom = process.env.GMAIL_ADDRESS!;
+  const mailTo = process.env.YAHOO_ADDRESS!;
+  const requestSite = req.headers.origin?.slice(12); // remove first part of the url
   const { data, recaptchaToken } = req.body;
 
   // handle CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
@@ -31,8 +31,8 @@ export default async function handler(req, res) {
     // google recaptcha enterprise
     const client = new RecaptchaEnterpriseServiceClient({
       credentials: {
-        client_email: process.env.SERVICE_ACCOUNT_CLIENT_EMAIL,
-        private_key: process.env.SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.SERVICE_ACCOUNT_CLIENT_EMAIL!,
+        private_key: process.env.SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n'),
       },
     });
 
@@ -51,15 +51,15 @@ export default async function handler(req, res) {
     const [response] = await client.createAssessment(request);
 
     // handle recaptcha
-    if (!response.tokenProperties.valid) {
+    if (response.tokenProperties?.valid === false) {
       return res.status(400).send({ message: 'Invalid token' });
     }
 
-    if (response.tokenProperties.action !== 'submitForm') {
+    if (response.tokenProperties?.action !== 'submitForm') {
       return res.status(400).send({ message: 'Invalid action' });
     }
 
-    if (response.riskAnalysis.score < 0.5) {
+    if (response.riskAnalysis?.score && response.riskAnalysis.score < 0.5) {
       return res.status(400).send({ message: 'Spam detected' });
     }
 
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     }
 
     const mailData = {
-      from: { name: requestSite, address: mailFrom },
+      from: { name: requestSite!, address: mailFrom },
       to: mailTo,
       replyTo: data.email,
       subject: `${requestSite} contact form - ${data.name}`,
