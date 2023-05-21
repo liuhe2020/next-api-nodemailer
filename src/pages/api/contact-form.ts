@@ -7,6 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const recaptchaKey = process.env.RECAPTCHA_SITE_KEY!;
   const mailFrom = process.env.GMAIL_ADDRESS!;
   const mailTo = process.env.YAHOO_ADDRESS!;
+  const projectId = process.env.GOOGLE_PROJECT_ID!;
   const requestSite = req.headers.origin?.slice(12); // remove first part of the url
   const { data, recaptchaToken } = req.body;
 
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const projectPath = client.projectPath('next-api-nodemailer');
+    const projectPath = client.projectPath(projectId);
 
     const request = {
       assessment: {
@@ -49,6 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     const [response] = await client.createAssessment(request);
+
+    console.log(response);
 
     // handle recaptcha
     if (response.tokenProperties?.valid === false) {
