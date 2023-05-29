@@ -8,7 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const mailFrom = process.env.GMAIL_ADDRESS!;
   const mailTo = process.env.YAHOO_ADDRESS!;
   const projectId = process.env.GOOGLE_PROJECT_ID!;
-  const requestSite = req.headers.origin?.slice(12); // remove first part of the url
+  const parsedOrigin = new URL(req.headers.origin!);
+  const requestSite = parsedOrigin.hostname.replace('www.', ''); // remove first part of the url
   const { data, recaptchaToken } = req.body;
 
   // handle CORS
