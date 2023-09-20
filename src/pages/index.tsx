@@ -20,7 +20,7 @@ export default function Home() {
           <div className={styles.content}>
             <h1 className={styles.title}>Next API</h1>
             <h1 className={styles.title}>Nodemailer</h1>
-            <p className={styles.text}>Powering contact forms with the Nodemailer library and a Next.js API route.</p>
+            <p className={styles.text}>Powering contact forms with the Nodemailer library and Next.js API routes.</p>
           </div>
         </div>
       </main>
